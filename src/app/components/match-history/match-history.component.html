@@ -1,0 +1,56 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Match History</h1>
+    <a routerLink="/new-match" class="btn btn-primary">+ New Match</a>
+  </div>
+
+  @if (matchService.matches().length === 0) {
+    <div class="empty-state">
+      <p>No matches recorded yet.</p>
+      <a routerLink="/new-match" class="btn btn-primary">Record your first match</a>
+    </div>
+  }
+
+  <div class="match-list">
+    @for (match of sortedMatches; track match.id) {
+      <div class="card match-card">
+        <div class="match-date">{{ match.date | date:'mediumDate' }}</div>
+        @if (match.location) {
+          <div class="match-location">📍 {{ match.location }}</div>
+        }
+
+        <div class="match-teams">
+          <div class="team" [class.winner]="match.winnerId === 1">
+            <span class="team-label">Team 1</span>
+            <span class="team-names">{{ teamLabel(match.team1) }}</span>
+          </div>
+          <div class="score-summary">
+            @for (set of match.sets; track $index) {
+              <span class="set-score" [class.set-win]="set.team1 > set.team2" [class.set-loss]="set.team1 < set.team2">
+                {{ set.team1 }}
+              </span>
+            }
+            <span class="score-sep">–</span>
+            @for (set of match.sets; track $index) {
+              <span class="set-score" [class.set-win]="set.team2 > set.team1" [class.set-loss]="set.team2 < set.team1">
+                {{ set.team2 }}
+              </span>
+            }
+          </div>
+          <div class="team team-right" [class.winner]="match.winnerId === 2">
+            <span class="team-names">{{ teamLabel(match.team2) }}</span>
+            <span class="team-label">Team 2</span>
+          </div>
+        </div>
+
+        <div class="match-footer">
+          <span class="sets-detail">{{ setScore(match) }}</span>
+          @if (match.winnerId) {
+            <span class="badge badge-win">Team {{ match.winnerId }} won</span>
+          }
+          <button class="btn-icon" (click)="remove(match.id)" title="Delete match">🗑</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

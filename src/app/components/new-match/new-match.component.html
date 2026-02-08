@@ -1,0 +1,179 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Setup Match</h1>
+    <div class="header-actions">
+      @if (voiceService.isSupported()) {
+        <button
+          type="button"
+          class="btn btn-voice"
+          [class.listening]="voiceService.isListening()"
+          (click)="toggleVoice()"
+          [title]="voiceService.isListening() ? 'Stop voice' : 'Enable voice (say Start Game)'"
+        >
+          <span class="mic-icon">{{ voiceService.isListening() ? '🔴' : '🎙️' }}</span>
+          {{ voiceService.isListening() ? 'Listening…' : 'Voice' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (voiceService.isListening()) {
+    <div class="voice-bar">
+      <span class="pulse"></span>
+      <span class="voice-hint">
+        Say: <em>"Start Game"</em> or <em>"New Game"</em>
+      </span>
+    </div>
+  }
+  @if (lastCommand()) {
+    <div class="voice-transcript">🗣 "{{ lastCommand() }}"</div>
+  }
+
+  @if (playerService.players().length < 4) {
+    <div class="alert alert-warn">
+      You need at least 4 players to record a match.
+      <a routerLink="/players">Add players</a>
+    </div>
+  }
+
+  <form (ngSubmit)="startGame()">
+    <!-- Match Details -->
+    <div class="card">
+      <h2>Match Details</h2>
+      <div class="field">
+        <label for="date">Date</label>
+        <input id="date" type="date" [(ngModel)]="date" name="date" required />
+      </div>
+      <div class="field">
+        <label for="location">Location (optional)</label>
+        <input
+          id="location"
+          type="text"
+          [(ngModel)]="location"
+          name="location"
+          placeholder="e.g. Club Padel, Court 1"
+        />
+      </div>
+    </div>
+
+    <!-- QR Code Display -->
+    @if (qrCodeData()) {
+      <div class="card qr-card">
+        <h3>📱 Share Match</h3>
+        <p class="qr-hint">
+          Other players can scan this QR code to join and select their position.
+        </p>
+        <div class="qr-container">
+          <app-qr-code
+            [value]="qrCodeData()"
+            [size]="250"
+          ></app-qr-code>
+        </div>
+        <div class="qr-actions">
+          <a [routerLink]="['/join-match']" class="btn btn-secondary">
+            Or click here to join manually
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Teams -->
+    <div class="teams-grid">
+      <div class="card team-card team1">
+        <h2>Team 1</h2>
+        <div class="field">
+          <label>Player 1</label>
+          <select [(ngModel)]="team1Player1" name="t1p1" required>
+            <option value="">Select player</option>
+            @for (p of playerService.players(); track p.id) {
+              <option
+                [value]="p.id"
+                [disabled]="selectedPlayers.includes(p.id) && team1Player1 !== p.id"
+              >
+                {{ p.name }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Player 2</label>
+          <select [(ngModel)]="team1Player2" name="t1p2" required>
+            <option value="">Select player</option>
+            @for (p of playerService.players(); track p.id) {
+              <option
+                [value]="p.id"
+                [disabled]="selectedPlayers.includes(p.id) && team1Player2 !== p.id"
+              >
+                {{ p.name }}
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <div class="card team-card team2">
+        <h2>Team 2</h2>
+        <div class="field">
+          <label>Player 1</label>
+          <select [(ngModel)]="team2Player1" name="t2p1" required>
+            <option value="">Select player</option>
+            @for (p of playerService.players(); track p.id) {
+              <option
+                [value]="p.id"
+                [disabled]="selectedPlayers.includes(p.id) && team2Player1 !== p.id"
+              >
+                {{ p.name }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Player 2</label>
+          <select [(ngModel)]="team2Player2" name="t2p2" required>
+            <option value="">Select player</option>
+            @for (p of playerService.players(); track p.id) {
+              <option
+                [value]="p.id"
+                [disabled]="selectedPlayers.includes(p.id) && team2Player2 !== p.id"
+              >
+                {{ p.name }}
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Preview -->
+    @if (hasValidPlayers) {
+      <div class="card matchup-preview">
+        <h3>Match Preview</h3>
+        <div class="preview-matchup">
+          <div class="preview-team team1">
+            <div class="preview-label">Team 1</div>
+            <div class="preview-names">{{ team1Label }}</div>
+          </div>
+          <div class="preview-vs">VS</div>
+          <div class="preview-team team2">
+            <div class="preview-label">Team 2</div>
+            <div class="preview-names">{{ team2Label }}</div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <button
+      type="submit"
+      class="btn btn-primary btn-full btn-start-game"
+      [disabled]="!hasValidPlayers"
+    >
+      🎾 Start Game
+    </button>
+  </form>
+</div>

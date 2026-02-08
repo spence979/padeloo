@@ -1,0 +1,141 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Join Match</h1>
+    <a routerLink="/new-match" class="btn-close">✕</a>
+  </div>
+
+  @if (loading()) {
+    <div class="card">
+      <div class="loading-spinner">Loading match...</div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (!matchId()) {
+    <!-- No match ID yet - show scanner option -->
+    <div class="card">
+      <h2>Scan QR Code</h2>
+      <p>Scan the QR code displayed on the host's device to join their match.</p>
+
+      @if (!showScanner()) {
+        <button class="btn btn-primary btn-full" (click)="startScanner()">
+          📷 Start QR Scanner
+        </button>
+      }
+
+      @if (scanError()) {
+        <div class="alert alert-error">{{ scanError() }}</div>
+      }
+    </div>
+  }
+
+  @if (matchId() && !loading()) {
+    <div class="card">
+      <h2>Match Details</h2>
+      <div class="match-details">
+        @if (sharedMatchService.sharedMatchData(); as data) {
+          <div class="detail-row">
+            <span class="label">Date:</span>
+            <span class="value">{{ data.date }}</span>
+          </div>
+          @if (data.location) {
+            <div class="detail-row">
+              <span class="label">Location:</span>
+              <span class="value">{{ data.location }}</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Show filled positions -->
+    @if (getFilledPositions().length > 0) {
+      <div class="card">
+        <h3>Current Players</h3>
+        <div class="filled-positions">
+          @for (pos of getFilledPositions(); track pos.position) {
+            <div class="position-item filled">
+              <div class="position-label">{{ pos.position }}</div>
+              <div class="player-name">{{ pos.playerName }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Position selection -->
+    @if (getAvailablePositions().length > 0) {
+      <div class="card">
+        <h3>Select Your Position</h3>
+        <p class="hint">Choose which position you want to play in this match.</p>
+
+        <div class="positions-grid">
+          @for (pos of getAvailablePositions(); track pos.position) {
+            <button
+              class="position-btn"
+              [class.selected]="selectedPosition() === pos.position"
+              (click)="selectPosition(pos.position)"
+            >
+              {{ pos.label }}
+            </button>
+          }
+        </div>
+
+        @if (selectedPosition()) {
+          <div class="player-selection">
+            <h4>Select Your Player Profile</h4>
+            <select [(ngModel)]="selectedPlayerId" class="player-select">
+              <option value="">Choose player...</option>
+              @for (player of playerService.players(); track player.id) {
+                <option [value]="player.id">{{ player.name }}</option>
+              }
+            </select>
+
+            <button
+              class="btn btn-primary btn-full"
+              [disabled]="!selectedPlayerId()"
+              (click)="joinMatch()"
+            >
+              Join Match
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card">
+        <div class="all-filled">
+          <p>All positions are filled!</p>
+          <p class="hint">This match is ready to start.</p>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- QR Scanner Overlay -->
+@if (showScanner()) {
+  <div class="scanner-overlay">
+    <video #scannerVideo autoplay playsinline></video>
+
+    <div class="scanner-ui">
+      <div class="scanner-header">
+        <h2>Scan QR Code</h2>
+        <button class="btn-close-scanner" (click)="stopScanner()">✕ Close</button>
+      </div>
+
+      <div class="scanner-frame">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+      </div>
+
+      <div class="scanner-hint">
+        Point your camera at the QR code
+      </div>
+    </div>
+  </div>
+}

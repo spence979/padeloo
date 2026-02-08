@@ -1,0 +1,153 @@
+<div class="fullscreen-scoring">
+  <!-- Header Bar -->
+  <div class="top-bar">
+    <button class="icon-btn" (click)="cancelMatch()" title="Cancel match">
+      ✕
+    </button>
+    <div class="match-info">
+      <span class="set-label">{{ currentSetLabel }}</span>
+      @if (state.completedSets.length > 0) {
+        <div class="sets-history">
+          @for (set of state.completedSets; track $index) {
+            <span class="set-badge">{{ set.team1 }}–{{ set.team2 }}</span>
+          }
+        </div>
+      }
+    </div>
+    <div class="controls">
+      @if (voiceService.isSupported()) {
+        <button
+          class="icon-btn"
+          [class.active]="voiceService.isListening()"
+          (click)="toggleVoice()"
+          [title]="voiceService.isListening() ? 'Stop voice' : 'Start voice'"
+        >
+          {{ voiceService.isListening() ? '🔴' : '🎙️' }}
+        </button>
+      }
+      @if (gestureService.isSupported()) {
+        <button
+          class="icon-btn"
+          [class.active]="gestureService.isActive()"
+          (click)="toggleCamera()"
+          title="Camera gestures"
+        >
+          {{ gestureService.isActive() ? '🔴' : '📷' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (voiceService.isListening() && lastCommand()) {
+    <div class="voice-transcript">🗣 "{{ lastCommand() }}"</div>
+  }
+
+  @if (cameraError()) {
+    <div class="alert-error">{{ cameraError() }}</div>
+  }
+
+  <!-- Main Scoring Area -->
+  @if (state.isMatchOver) {
+    <div class="match-complete">
+      <div class="trophy">🏆</div>
+      <h1>{{ state.winner === 1 ? team1Label : team2Label }} wins!</h1>
+      <div class="final-score">
+        <div class="sets-won">Sets: {{ setsWon.team1 }}–{{ setsWon.team2 }}</div>
+      </div>
+      <button class="btn-save" (click)="saveMatch()">
+        Save Match
+      </button>
+    </div>
+  } @else {
+    <div class="scoring-container">
+      <!-- Left tap zone - Team 1 -->
+      <div class="tap-zone team1-zone" (click)="addPoint(1)">
+        <div class="team-info">
+          <div class="team-name">{{ team1Label }}</div>
+          <div class="games-score">{{ state.currentSet.team1 }}</div>
+          <div class="points-score" [class.ad]="pointDisplay.team1 === 'Ad'">
+            {{ pointDisplay.team1 }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Center divider with deuce/tiebreak indicator -->
+      <div class="center-divider">
+        @if (isDeuce) {
+          <div class="deuce-indicator">DEUCE</div>
+        }
+        @if (state.isInTiebreak) {
+          <div class="tiebreak-indicator">TB</div>
+        }
+      </div>
+
+      <!-- Right tap zone - Team 2 -->
+      <div class="tap-zone team2-zone" (click)="addPoint(2)">
+        <div class="team-info">
+          <div class="team-name">{{ team2Label }}</div>
+          <div class="games-score">{{ state.currentSet.team2 }}</div>
+          <div class="points-score" [class.ad]="pointDisplay.team2 === 'Ad'">
+            {{ pointDisplay.team2 }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="bottom-bar">
+      <button
+        class="btn-undo"
+        (click)="undoPoint()"
+        [disabled]="!stateHistory.length"
+      >
+        ↩ Undo
+      </button>
+      <button class="btn-finish" (click)="saveMatch()">
+        Finish & Save
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Camera Gesture Overlay -->
+@if (showCameraOverlay()) {
+  <div class="camera-overlay">
+    <video #cameraVideo autoplay playsinline muted></video>
+
+    <div class="camera-ui">
+      <div class="camera-top-bar">
+        <button class="camera-btn" (click)="toggleCamera()">✕ Close</button>
+        <div class="gesture-indicator">
+          @if (gestureService.lastGesture()) {
+            <span class="gesture-flash">{{ gestureService.lastGesture() }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="gesture-score-display">
+        <div class="gesture-team-score t1">
+          <div class="gesture-score-label">{{ team1Label }}</div>
+          <div class="gesture-score-num">{{ state.currentSet.team1 }}</div>
+          <div class="gesture-score-pts">{{ pointDisplay.team1 }}</div>
+        </div>
+        <div class="gesture-score-sep">–</div>
+        <div class="gesture-team-score t2">
+          <div class="gesture-score-label">{{ team2Label }}</div>
+          <div class="gesture-score-num">{{ state.currentSet.team2 }}</div>
+          <div class="gesture-score-pts">{{ pointDisplay.team2 }}</div>
+        </div>
+      </div>
+
+      <div class="gesture-hint-bar">
+        <span class="hint-left">← Swipe left = {{ team1Label }}</span>
+        <span class="hint-right">{{ team2Label }} = Swipe right →</span>
+      </div>
+
+      <div class="camera-bottom-bar">
+        <button class="camera-btn" (click)="undoPoint()">↩ Undo</button>
+        <div class="set-info">{{ currentSetLabel }}</div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,55 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Players</h1>
+    <button class="btn btn-primary" (click)="showForm.set(!showForm())">
+      {{ showForm() ? 'Cancel' : '+ Add Player' }}
+    </button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form-card" (ngSubmit)="submit()">
+      <h2>New Player</h2>
+      <div class="field">
+        <label for="name">Name *</label>
+        <input id="name" type="text" [(ngModel)]="newName" name="name" placeholder="Player name" required />
+      </div>
+      <div class="field">
+        <label for="email">Email (optional)</label>
+        <input id="email" type="email" [(ngModel)]="newEmail" name="email" placeholder="player@email.com" />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="!newName.trim()">Add Player</button>
+    </form>
+  }
+
+  @if (playerService.players().length === 0) {
+    <div class="empty-state">
+      <p>No players yet. Add your first player above.</p>
+    </div>
+  }
+
+  <div class="player-list">
+    @for (player of playerService.players(); track player.id) {
+      <div class="card player-card">
+        <div class="player-info">
+          <div class="player-avatar">{{ player.name[0].toUpperCase() }}</div>
+          <div>
+            <div class="player-name">{{ player.name }}</div>
+            @if (player.email) {
+              <div class="player-email">{{ player.email }}</div>
+            }
+          </div>
+        </div>
+        <div class="player-stats">
+          @let stats = matchService.getStatsForPlayer(player.id);
+          <span class="stat">{{ stats.matchesPlayed }} played</span>
+          <span class="stat win">{{ stats.wins }}W</span>
+          <span class="stat loss">{{ stats.losses }}L</span>
+          @if (stats.matchesPlayed > 0) {
+            <span class="stat pct">{{ stats.winPercentage }}%</span>
+          }
+        </div>
+        <button class="btn-icon" (click)="remove(player.id)" title="Remove player">✕</button>
+      </div>
+    }
+  </div>
+</div>

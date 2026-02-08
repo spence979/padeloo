@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Padeloo</h1>
+    <a routerLink="/new-match" class="btn btn-primary">+ New Match</a>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ totalMatches }}</div>
+      <div class="stat-label">Matches</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ totalPlayers }}</div>
+      <div class="stat-label">Players</div>
+    </div>
+    @if (topPlayer) {
+      <div class="stat-card highlight">
+        <div class="stat-value">{{ topPlayer.winPct }}%</div>
+        <div class="stat-label">{{ topPlayer.name }}</div>
+        <div class="stat-sub">Top performer</div>
+      </div>
+    }
+  </div>
+
+  <!-- Recent Matches -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Recent Matches</h2>
+      @if (totalMatches > 5) {
+        <a routerLink="/history" class="link">View all</a>
+      }
+    </div>
+
+    @if (matchService.recentMatches().length === 0) {
+      <div class="empty-state">
+        <p>No matches yet. Record your first game!</p>
+        <a routerLink="/new-match" class="btn btn-primary">Record Match</a>
+      </div>
+    } @else {
+      <div class="match-list">
+        @for (match of matchService.recentMatches(); track match.id) {
+          <div class="card match-card">
+            <div class="match-meta">
+              <span class="match-date">{{ match.date | date:'mediumDate' }}</span>
+              @if (match.location) {
+                <span class="match-location">{{ match.location }}</span>
+              }
+            </div>
+            <div class="match-result">
+              <div class="team-row" [class.winner]="match.winnerId === 1">
+                <span class="team-names">{{ teamLabel(match.team1) }}</span>
+                <span class="sets-scores">
+                  @for (s of match.sets; track $index) {
+                    <span class="set-num">{{ s.team1 }}</span>
+                  }
+                </span>
+              </div>
+              <div class="team-row" [class.winner]="match.winnerId === 2">
+                <span class="team-names">{{ teamLabel(match.team2) }}</span>
+                <span class="sets-scores">
+                  @for (s of match.sets; track $index) {
+                    <span class="set-num">{{ s.team2 }}</span>
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Quick Nav -->
+  @if (totalPlayers === 0) {
+    <div class="card onboarding">
+      <h2>Get Started</h2>
+      <p>Add players first, then start recording matches.</p>
+      <a routerLink="/players" class="btn btn-secondary">Manage Players</a>
+    </div>
+  }
+</div>

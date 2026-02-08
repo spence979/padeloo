@@ -1,0 +1,114 @@
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.match-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-date {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.match-location {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.match-teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  &.team-right {
+    text-align: right;
+  }
+
+  &.winner .team-names {
+    font-weight: 700;
+    color: var(--success);
+  }
+}
+
+.team-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.team-names {
+  font-size: 0.95rem;
+}
+
+.score-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.set-score {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+
+  &.set-win { color: var(--success); }
+  &.set-loss { color: var(--danger); }
+}
+
+.score-sep {
+  font-size: 0.8rem;
+  color: var(--border);
+}
+
+.match-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.sets-detail {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+
+  &.badge-win {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+    font-weight: 600;
+  }
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.9rem;
+  opacity: 0.5;
+
+  &:hover { opacity: 1; }
+}

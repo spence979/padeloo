@@ -1,0 +1,82 @@
+<div class="app-shell">
+  @if (auth.user() === undefined) {
+    <div class="loading-screen">🎾</div>
+  } @else {
+    @if (showShell) {
+      <nav class="sidebar">
+        <div class="sidebar-brand">🎾 Padeloo</div>
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="sidebar-item">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home</span>
+        </a>
+        <a routerLink="/new-match" routerLinkActive="active" class="sidebar-item">
+          <span class="nav-icon">+</span>
+          <span class="nav-label">New Game</span>
+        </a>
+        <a routerLink="/history" routerLinkActive="active" class="sidebar-item">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">History</span>
+        </a>
+        <a routerLink="/players" routerLinkActive="active" class="sidebar-item">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Players</span>
+        </a>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="user-section">
+          <div class="user-row">
+            @if (auth.user()?.photoURL) {
+              <img class="user-avatar" [src]="auth.user()!.photoURL!" [alt]="auth.user()!.displayName ?? ''" referrerpolicy="no-referrer">
+            } @else {
+              <div class="user-avatar user-avatar-initial">{{ auth.user()?.displayName?.[0] ?? '?' }}</div>
+            }
+            <div class="user-details">
+              <div class="user-name">{{ auth.user()?.displayName }}</div>
+              <div class="user-email">{{ auth.user()?.email }}</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sign-out" (click)="auth.signOut()">Sign out</button>
+        </div>
+      </nav>
+
+      <header class="app-header">
+        <span class="app-title">🎾 Padeloo</span>
+        <div class="header-user">
+          @if (auth.user()?.photoURL) {
+            <img class="header-avatar" [src]="auth.user()!.photoURL!" [alt]="auth.user()!.displayName ?? ''" referrerpolicy="no-referrer">
+          } @else {
+            <div class="header-avatar header-avatar-initial">{{ auth.user()?.displayName?.[0] ?? '?' }}</div>
+          }
+          <span class="header-user-name">{{ auth.user()?.displayName }}</span>
+          <button class="btn-sign-out-mobile" (click)="auth.signOut()" title="Sign out">↩</button>
+        </div>
+      </header>
+    }
+
+    <main class="app-content">
+      <router-outlet />
+    </main>
+
+    @if (showShell) {
+      <nav class="bottom-nav">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home</span>
+        </a>
+        <a routerLink="/new-match" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">+</span>
+          <span class="nav-label">New Game</span>
+        </a>
+        <a routerLink="/history" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">History</span>
+        </a>
+        <a routerLink="/players" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Players</span>
+        </a>
+      </nav>
+    }
+  }
+</div>
