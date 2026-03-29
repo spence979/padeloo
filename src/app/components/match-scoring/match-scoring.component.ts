@@ -6,6 +6,7 @@ import { PlayerService } from '../../services/player.service';
 import { MatchService } from '../../services/match.service';
 import { VoiceService } from '../../services/voice.service';
 import { GestureService } from '../../services/gesture.service';
+import { BluetoothRemoteService } from '../../services/bluetooth-remote.service';
 import { MatchSetupService } from '../../services/match-setup.service';
 import { SetScore } from '../../models/match.model';
 
@@ -45,6 +46,7 @@ export class MatchScoringComponent implements OnInit, OnDestroy {
 
   private voiceSub: Subscription | null = null;
   private gestureSub: Subscription | null = null;
+  private remoteSub: Subscription | null = null;
 
   constructor(
     public playerService: PlayerService,
@@ -52,6 +54,7 @@ export class MatchScoringComponent implements OnInit, OnDestroy {
     private router: Router,
     public voiceService: VoiceService,
     public gestureService: GestureService,
+    public bluetoothRemoteService: BluetoothRemoteService,
     private matchSetupService: MatchSetupService
   ) {}
 
@@ -75,6 +78,12 @@ export class MatchScoringComponent implements OnInit, OnDestroy {
     if (this.voiceService.isSupported()) {
       this.startVoice();
     }
+
+    // Auto-start Bluetooth remote listener
+    this.bluetoothRemoteService.start();
+    this.remoteSub = this.bluetoothRemoteService.command$.subscribe(cmd => {
+      if (cmd.type === 'point') this.addPoint(cmd.team);
+    });
   }
 
   ngOnDestroy(): void {
@@ -82,6 +91,8 @@ export class MatchScoringComponent implements OnInit, OnDestroy {
     this.voiceSub?.unsubscribe();
     this.gestureService.stop();
     this.gestureSub?.unsubscribe();
+    this.bluetoothRemoteService.stop();
+    this.remoteSub?.unsubscribe();
   }
 
   private freshState(): MatchState {

@@ -86,20 +86,8 @@
 
         @if (selectedPosition()) {
           <div class="player-selection">
-            <h4>Select Your Player Profile</h4>
-            <select [(ngModel)]="selectedPlayerId" class="player-select">
-              <option value="">Choose player...</option>
-              @for (player of playerService.players(); track player.id) {
-                <option [value]="player.id">{{ player.name }}</option>
-              }
-            </select>
-
-            <button
-              class="btn btn-primary btn-full"
-              [disabled]="!selectedPlayerId()"
-              (click)="joinMatch()"
-            >
-              Join Match
+            <button class="btn btn-primary btn-full" (click)="joinMatch()">
+              Join as {{ myPlayerName }}
             </button>
           </div>
         }

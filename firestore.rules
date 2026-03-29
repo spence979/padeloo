@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global players collection — all authenticated users can read
+    // Only the linked auth user (or anyone for manually-added players without authUid) can write
+    match /players/{playerId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && (resource.data.authUid == null || resource.data.authUid == request.auth.uid);
+    }
+
+    // Per-user match history
+    match /users/{userId}/matches/{matchId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Shared match sessions for QR join
+    match /sharedMatches/{matchId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

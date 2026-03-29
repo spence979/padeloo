@@ -1,11 +1,12 @@
 import { Injectable, signal, effect } from '@angular/core';
-import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { User } from 'firebase/auth';
 import { Player } from '../models/player.model';
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { db } from '../firebase';
 
-const STORAGE_KEY = 'padel_players';
+const STORAGE_KEY = 'padel_players_v2';
 
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
@@ -21,7 +22,7 @@ export class PlayerService {
     // Load from localStorage immediately (fast / offline start)
     this._players.set(this.storage.get<Player>(STORAGE_KEY));
 
-    // React to auth state changes — start/stop Firestore listener per user
+    // React to auth state — start global listener and ensure auth user has a profile
     effect(() => {
       this.unsubFirestore?.();
       this.unsubFirestore = null;
@@ -29,8 +30,9 @@ export class PlayerService {
       const user = this.auth.user();
       if (!user) return;
 
+      // Listen to the global players collection
       this.unsubFirestore = onSnapshot(
-        collection(db, `users/${user.uid}/players`),
+        collection(db, 'players'),
         snapshot => {
           const players = snapshot.docs
             .map(d => d.data() as Player)
@@ -40,11 +42,30 @@ export class PlayerService {
         },
         err => console.warn('Firestore players unavailable:', err.message)
       );
+
+      // Auto-create a player profile for this auth user if one doesn't exist
+      this.ensureAuthProfile(user);
     });
   }
 
+  // Creates a player profile for the auth user on first sign-in.
+  // Uses user.uid as the player ID so identity is always resolvable from the auth token.
+  async ensureAuthProfile(user: User): Promise<void> {
+    const ref = doc(db, 'players', user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      const player: Player = {
+        id: user.uid,
+        name: user.displayName ?? user.email?.split('@')[0] ?? 'Player',
+        email: user.email ?? undefined,
+        authUid: user.uid,
+        createdAt: new Date().toISOString(),
+      };
+      await setDoc(ref, stripUndefined(player));
+    }
+  }
+
   add(name: string, email?: string): Player {
-    const uid = this.auth.user()?.uid;
     const player: Player = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -55,23 +76,23 @@ export class PlayerService {
     const updated = [...this._players(), player];
     this._players.set(updated);
     this.storage.set(STORAGE_KEY, updated);
-
-    if (uid) {
-      setDoc(doc(db, `users/${uid}/players`, player.id), stripUndefined(player));
-    }
+    setDoc(doc(db, 'players', player.id), stripUndefined(player));
     return player;
   }
 
   remove(id: string): void {
-    const uid = this.auth.user()?.uid;
     const updated = this._players().filter(p => p.id !== id);
     this._players.set(updated);
     this.storage.set(STORAGE_KEY, updated);
-    if (uid) deleteDoc(doc(db, `users/${uid}/players`, id));
+    deleteDoc(doc(db, 'players', id));
   }
 
   getById(id: string): Player | undefined {
     return this._players().find(p => p.id === id);
+  }
+
+  getByAuthUid(uid: string): Player | undefined {
+    return this._players().find(p => p.authUid === uid);
   }
 }
 

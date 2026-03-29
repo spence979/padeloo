@@ -1,15 +1,15 @@
 import { Component, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { PlayerService } from '../../services/player.service';
 import { SharedMatchService, PlayerPosition } from '../../services/shared-match.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-join-match',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './join-match.component.html',
   styleUrl: './join-match.component.scss'
 })
@@ -19,7 +19,6 @@ export class JoinMatchComponent implements OnInit, OnDestroy {
   matchId = signal<string | null>(null);
   matchData = signal<any>(null);
   selectedPosition = signal<PlayerPosition | null>(null);
-  selectedPlayerId = signal<string>('');
 
   showScanner = signal(false);
   scanError = signal('');
@@ -32,8 +31,20 @@ export class JoinMatchComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     public playerService: PlayerService,
-    public sharedMatchService: SharedMatchService
+    public sharedMatchService: SharedMatchService,
+    private authService: AuthService
   ) {}
+
+  // Auth users have id === uid, so identity is always resolvable from the auth token
+  get myPlayerId(): string {
+    return this.authService.user()?.uid ?? '';
+  }
+
+  get myPlayerName(): string {
+    return this.playerService.getById(this.myPlayerId)?.name
+      ?? this.authService.user()?.displayName
+      ?? '';
+  }
 
   ngOnInit(): void {
     // Check if match ID is provided in query params
@@ -114,7 +125,7 @@ export class JoinMatchComponent implements OnInit, OnDestroy {
 
   async joinMatch(): Promise<void> {
     const position = this.selectedPosition();
-    const playerId = this.selectedPlayerId();
+    const playerId = this.myPlayerId;
     const matchId = this.matchId();
 
     if (!position || !playerId || !matchId) {
